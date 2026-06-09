@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cofre Disney">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Meu Cofre Disney ✨</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0f1a; --bg2: #1a1a2e; --bg3: #16213e;
+  --card: #1e1e35; --card2: #252545;
+  --gold: #f5c842; --gold2: #e8a820;
+  --blue: #4a9eff; --blue2: #2d7dd2;
+  --green: #3ecf8e; --pink: #ff6b9d; --purple: #9b59ff;
+  --text: #f0f0ff; --text2: #9090b8; --text3: #6060a0;
+  --border: rgba(255,255,255,0.08);
+  --radius: 16px; --radius-sm: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Nunito', sans-serif; overflow-x: hidden; }
+h1,h2,h3,.display { font-family: 'Baloo 2', sans-serif; }
+
+.stars-bg {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(74,158,255,0.06) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 20%, rgba(155,89,255,0.06) 0%, transparent 60%), var(--bg);
+}
+.stars-bg::before {
+  content: ''; position: absolute; inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 25% 35%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 45%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 15% 65%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 80%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 5% 40%, rgba(245,200,66,0.5) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 75% 70%, rgba(245,200,66,0.4) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 45% 55%, rgba(74,158,255,0.4) 0%, transparent 100%);
+}
+
+.app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; }
+.screen { display: none; flex: 1; flex-direction: column; padding: 0 0 80px; animation: fadeUp 0.3s ease; }
+.screen.active { display: flex; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+
+.nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; z-index: 100;
+  background: var(--bg2); border-top: 1px solid var(--border); display: flex; align-items: stretch; }
+.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; padding: 10px 4px 14px; cursor: pointer; border: none; background: none;
+  color: var(--text3); font-size: 11px; font-family: 'Nunito', sans-serif; font-weight: 600; transition: color 0.2s; }
+.nav-btn.active { color: var(--gold); }
+.nav-btn svg { width: 22px; height: 22px; }
+
+.header { padding: 20px 20px 8px; display: flex; align-items: center; justify-content: space-between; }
+.header h2 { font-size: 22px; font-weight: 800; color: var(--text); }
+.header-sub { font-size: 13px; color: var(--text2); margin-top: 1px; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.scroll { flex: 1; overflow-y: auto; padding: 0 16px; display: flex; flex-direction: column; gap: 14px; }
+.scroll::-webkit-scrollbar { display: none; }
+
+/* HERO */
+.hero-card {
+  background: linear-gradient(135deg, #1e1e3f 0%, #2a1a4e 100%);
+  border: 1px solid rgba(245,200,66,0.2); border-radius: var(--radius);
+  padding: 24px 20px; text-align: center; position: relative; overflow: hidden;
+}
+.hero-card::before {
+  content: ''; position: absolute; top: -40px; right: -40px; width: 160px; height: 160px;
+  border-radius: 50%; background: radial-gradient(circle, rgba(245,200,66,0.08) 0%, transparent 70%);
+}
+.hero-saldo-label { font-size: 12px; color: var(--text2); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+.hero-saldo { font-family: 'Baloo 2', sans-serif; font-size: 52px; font-weight: 800; color: var(--gold); line-height: 1; }
+.hero-eur { font-size: 13px; color: var(--text2); margin: 6px 0 20px; }
+.hero-meta-label { font-size: 12px; color: var(--text2); margin-bottom: 8px; }
+.hero-barra-bg { height: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden; margin-bottom: 6px; }
+.hero-barra-fill { height: 12px; border-radius: 6px; background: linear-gradient(90deg, var(--gold2), var(--gold)); transition: width 0.8s cubic-bezier(.4,0,.2,1); }
+.hero-pct { font-size: 12px; color: var(--text2); }
+.hero-pct span { color: var(--gold); font-weight: 700; }
+.estrelas-wrap { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-top: 16px; }
+.estrela { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
+.estrela.on { background: rgba(245,200,66,0.15); border-color: rgba(245,200,66,0.4); }
+.estrela svg { width: 14px; height: 14px; }
+
+/* CUSTOS */
+.cost-item { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.cost-item:last-child { border-bottom: none; }
+.cost-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+.cost-name { font-size: 13px; color: var(--text); font-weight: 600; }
+.cost-vals { font-size: 11px; color: var(--text2); }
+.cost-bar-bg { height: 5px; background: rgba(255,255,255,0.07); border-radius: 3px; overflow: hidden; }
+.cost-bar-fill { height: 5px; border-radius: 3px; transition: width 0.8s ease; }
+
+/* EXPERIÊNCIAS */
+.exp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.exp-item { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; transition: border-color 0.3s; }
+.exp-item.unlocked { border-color: rgba(62,207,142,0.4); }
+.exp-item.locked-state { opacity: 0.38; }
+.exp-icon { font-size: 20px; margin-bottom: 6px; }
+.exp-name { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.exp-val { font-size: 11px; color: var(--text2); margin-bottom: 8px; }
+.exp-bar-bg { height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+.exp-bar-fill { height: 4px; border-radius: 2px; background: var(--blue); transition: width 0.8s ease; }
+.exp-item.unlocked .exp-bar-fill { background: var(--green); }
+.exp-check { font-size: 11px; color: var(--green); font-weight: 700; margin-top: 5px; }
+.exp-lock-msg { font-size: 10px; color: var(--text3); margin-top: 4px; }
+
+/* HISTÓRICO */
+.hist-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.hist-item:last-child { border-bottom: none; }
+.hist-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.hist-desc { font-size: 13px; color: var(--text); flex: 1; }
+.hist-data { font-size: 11px; color: var(--text3); }
+.hist-amt { font-size: 14px; font-weight: 700; color: var(--gold); min-width: 60px; text-align: right; }
+.hist-empty { text-align: center; padding: 32px 0; color: var(--text2); font-size: 14px; }
+
+/* FORM */
+.form-label { font-size: 12px; color: var(--text2); font-weight: 600; letter-spacing: 0.05em; margin-bottom: 6px; display: block; }
+.form-input { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; color: var(--text); font-size: 15px; font-family: 'Nunito', sans-serif; outline: none; transition: border-color 0.2s; }
+.form-input:focus { border-color: var(--blue); }
+.form-select { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; color: var(--text); font-size: 15px; font-family: 'Nunito', sans-serif; outline: none; appearance: none; cursor: pointer; }
+.form-select option { background: var(--bg2); }
+.btn { width: 100%; padding: 14px; border-radius: var(--radius-sm); border: none; font-size: 16px; font-weight: 700; font-family: 'Baloo 2', sans-serif; cursor: pointer; transition: opacity 0.2s, transform 0.1s; }
+.btn:active { transform: scale(0.98); }
+.btn-gold { background: var(--gold); color: #1a1000; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text2); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.tipo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tipo-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px;
+  background: var(--card); border: 2px solid var(--border); border-radius: var(--radius-sm);
+  cursor: pointer; transition: all 0.2s; font-family: 'Nunito', sans-serif; color: var(--text2); font-size: 12px; font-weight: 600; }
+.tipo-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(245,200,66,0.08); }
+.tipo-btn svg { width: 20px; height: 20px; }
+
+.login-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; gap: 24px; }
+.login-logo { font-family: 'Baloo 2', sans-serif; font-size: 32px; font-weight: 800; color: var(--gold); text-align: center; }
+.login-sub { font-size: 14px; color: var(--text2); text-align: center; margin-top: -16px; }
+.login-box { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 12px; }
+.erro-msg { font-size: 13px; color: var(--pink); text-align: center; min-height: 18px; }
+
+.sec-title { font-size: 12px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; }
+
+.toast-wrap { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); z-index: 999; pointer-events: none; width: max-content; }
+.toast { background: var(--green); color: #001a0d; padding: 10px 20px; border-radius: 30px; font-size: 14px; font-weight: 700; font-family: 'Baloo 2', sans-serif; opacity: 0; transform: translateY(10px); transition: all 0.3s; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateY(0); }
+
+.anos-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; }
+.ano-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; text-align: center; }
+.ano-label { font-size: 10px; color: var(--text2); margin-bottom: 4px; }
+.ano-val { font-size: 18px; font-weight: 800; font-family: 'Baloo 2', sans-serif; color: var(--text); }
+.ano-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.badge-prova { background: rgba(74,158,255,0.15); color: var(--blue); }
+.badge-venda { background: rgba(62,207,142,0.15); color: var(--green); }
+.badge-presente { background: rgba(245,200,66,0.15); color: var(--gold); }
+
+.mat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
+.mat-btn { padding: 8px 4px; background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font-family: 'Nunito', sans-serif; color: var(--text2); font-size: 11px; font-weight: 600; text-align: center; transition: all 0.2s; }
+.mat-btn.active { border-color: var(--blue); color: var(--blue); background: rgba(74,158,255,0.08); }
+
+/* ADMIN META REAL */
+.meta-real-card { background: rgba(62,207,142,0.06); border: 1px solid rgba(62,207,142,0.25); border-radius: var(--radius); padding: 14px 16px; }
+.meta-real-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.meta-real-label { font-size: 12px; color: var(--green); }
+.meta-real-value { font-size: 16px; font-weight: 800; color: var(--green); font-family: 'Baloo 2', sans-serif; }
+.meta-real-sub { font-size: 11px; color: rgba(62,207,142,0.55); margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="stars-bg"></div>
+<div class="app" id="app">
+
+  <!-- LOGIN -->
+  <div id="login-screen" class="screen active" style="padding-bottom:0">
+    <div class="login-screen">
+      <div>
+        <div class="login-logo">✦ Cofre Disney ✦</div>
+        <div class="login-sub">Acesso da administradora</div>
+      </div>
+      <div class="login-box">
+        <input type="password" id="senha-input" class="form-input" placeholder="Digite a senha" style="text-align:center;font-size:18px;letter-spacing:4px" onkeydown="if(event.key==='Enter')entrar()">
+        <button class="btn btn-gold" onclick="entrar()">Entrar como admin</button>
+        <div class="erro-msg" id="erro-login"></div>
+        <div style="text-align:center;margin-top:8px">
+          <button class="btn btn-outline" onclick="verCofre()" style="padding:10px">Ver cofre da Sophia ✨</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TELA SOPHIA -->
+  <div id="screen-cofre" class="screen">
+    <div class="header">
+      <div>
+        <h2>Meu cofre ✨</h2>
+        <div class="header-sub">Disneyland Paris — quando a meta chegar! 🏰</div>
+      </div>
+    </div>
+    <div class="scroll">
+
+      <div class="hero-card">
+        <div class="hero-saldo-label">total guardado</div>
+        <div class="hero-saldo" id="s-saldo">R$ 0</div>
+        <div class="hero-eur" id="s-eur">≈ €0 · €1 = R$ 6,20</div>
+        <div class="hero-meta-label">meta: <strong style="color:var(--gold)">R$ 12.000</strong></div>
+        <div class="hero-barra-bg"><div class="hero-barra-fill" id="s-barra" style="width:0%"></div></div>
+        <div class="hero-pct"><span id="s-pct">0%</span> da meta</div>
+        <div class="estrelas-wrap" id="s-estrelas"></div>
+      </div>
+
+      <div class="card" style="text-align:center;padding:20px">
+        <div style="font-family:'Baloo 2',sans-serif;font-size:56px;font-weight:800;color:var(--purple);line-height:1" id="s-pct-big">0%</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:6px">do sonho guardado</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:6px" id="s-motivacao">A viagem acontece quando a meta chegar 🏰</div>
+      </div>
+
+      <div>
+        <div class="sec-title" style="margin-bottom:10px">passagem aérea</div>
+        <div class="card" style="padding:12px 16px" id="s-passagem"></div>
+      </div>
+
+      <div>
+        <div class="sec-title" style="margin-bottom:10px">custos na disney</div>
+        <div class="card" style="padding:12px 16px" id="s-disney-costs"></div>
+      </div>
+
+      <div>
+        <div class="sec-title" style="margin-bottom:10px">o que vou fazer lá</div>
+        <div class="exp-grid" id="s-exp"></div>
+      </div>
+
+      <div>
+        <div class="sec-title" style="margin-bottom:10px">últimas conquistas</div>
+        <div class="card" style="padding:0 16px">
+          <div id="s-hist"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TELA ADMIN — REGISTRAR -->
+  <div id="screen-admin" class="screen">
+    <div class="header">
+      <div>
+        <h2>Registrar</h2>
+        <div class="header-sub">Nova conquista</div>
+      </div>
+    </div>
+    <div class="scroll">
+
+      <div class="meta-real-card">
+        <div class="meta-real-row">
+          <div class="meta-real-label">meta real da viagem (inflação 5%/ano)</div>
+          <div class="meta-real-value" id="admin-meta-real-val">—</div>
+        </div>
+        <div class="meta-real-row">
+          <div class="meta-real-label">cada prova vale agora</div>
+          <div class="meta-real-value" id="admin-prova-val">—</div>
+        </div>
+        <div class="meta-real-sub" id="admin-prova-prox"></div>
+      </div>
+
+      <div>
+        <div class="sec-title" style="margin-bottom:10px">tipo de conquista</div>
+        <div class="tipo-grid">
+          <button class="tipo-btn active" id="tipo-prova" onclick="setTipo('prova')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+            Prova
+          </button>
+          <button class="tipo-btn" id="tipo-venda" onclick="setTipo('venda')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+            Venda
+          </button>
+          <button class="tipo-btn" id="tipo-presente" onclick="setTipo('presente')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+            Presente
+          </button>
+        </div>
+      </div>
+
+      <div id="bloco-materia" style="display:none">
+        <div class="sec-title" style="margin-bottom:10px">matéria</div>
+        <div class="mat-grid">
+          <button class="mat-btn active" onclick="setMat(this,'Português')">Português</button>
+          <button class="mat-btn" onclick="setMat(this,'Matemática')">Matemática</button>
+          <button class="mat-btn" onclick="setMat(this,'Ciências')">Ciências</button>
+          <button class="mat-btn" onclick="setMat(this,'História')">História</button>
+          <button class="mat-btn" onclick="setMat(this,'Geografia')">Geografia</button>
+        </div>
+      </div>
+
+      <div id="bloco-nota" style="display:none">
+        <div class="sec-title" style="margin-bottom:10px">nota obtida</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button class="tipo-btn active" id="nota-9" onclick="setNota(9)">Nota 9</button>
+          <button class="tipo-btn" id="nota-10" onclick="setNota(10)">Nota 10</button>
+        </div>
+      </div>
+
+      <div id="bloco-valor">
+        <label class="form-label">valor (R$)</label>
+        <input type="number" id="valor-input" class="form-input" placeholder="100" value="100" min="1" step="1">
+      </div>
+
+      <div id="bloco-descricao">
+        <label class="form-label">descrição (opcional)</label>
+        <input type="text" id="desc-input" class="form-input" placeholder="Ex: Prova de Português — 1º trimestre">
+      </div>
+
+      <button class="btn btn-gold" id="btn-registrar" onclick="registrar()">Registrar conquista</button>
+      <div style="height:8px"></div>
+    </div>
+  </div>
+
+  <!-- TELA ADMIN — HISTÓRICO -->
+  <div id="screen-historico" class="screen">
+    <div class="header">
+      <div>
+        <h2>Histórico</h2>
+        <div class="header-sub" id="admin-total-label">Total: R$ 0</div>
+      </div>
+    </div>
+    <div class="scroll">
+      <div class="anos-grid" id="anos-grid"></div>
+      <div class="card" style="padding:0 16px">
+        <div id="admin-hist"></div>
+      </div>
+      <button class="btn btn-outline" onclick="if(confirm('Apagar tudo?'))resetar()" style="margin-top:4px">Zerar cofre</button>
+    </div>
+  </div>
+
+  <!-- NAV SOPHIA -->
+  <nav class="nav" id="nav-sobrinha" style="display:none">
+    <button class="nav-btn active" id="nb-cofre" onclick="goScreen('cofre')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Cofre
+    </button>
+  </nav>
+
+  <!-- NAV ADMIN -->
+  <nav class="nav" id="nav-admin" style="display:none">
+    <button class="nav-btn active" id="na-registrar" onclick="goAdmin('admin')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M12 14v8m-4-4h8"/></svg>
+      Registrar
+    </button>
+    <button class="nav-btn" id="na-cofre" onclick="goAdmin('cofre-admin')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 3H8l-2 4h12l-2-4z"/></svg>
+      Cofre
+    </button>
+    <button class="nav-btn" id="na-historico" onclick="goAdmin('historico')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Histórico
+    </button>
+    <button class="nav-btn" onclick="sair()" style="color:var(--pink)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9"/></svg>
+      Sair
+    </button>
+  </nav>
+
+</div>
+<div class="toast-wrap"><div class="toast" id="toast">Conquista registrada!</div></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+// ═══════════════════════════════════════════
+// CONFIGURAÇÃO — troque pelos seus dados Firebase
+// ═══════════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyB_qWp9ZuzTQ4H154ymqED16XWZBotbwIg",
+  authDomain: "cofre-disney.firebaseapp.com",
+  projectId: "cofre-disney",
+  storageBucket: "cofre-disney.firebasestorage.app",
+  messagingSenderId: "441111252956",
+  appId: "1:441111252956:web:a021f9096ff9aa2c180919"
+};
+
+const SENHA_ADMIN = "disney2029"; // ← mude para a senha que quiser
+
+// ═══════════════════════════════════════════
+// METAS E CUSTOS
+// ═══════════════════════════════════════════
+const META           = 12000;   // meta visível para a Sophia — NUNCA muda na tela dela
+const META_REAL_BASE = 16510;   // custo real estimado da viagem em 2026
+const INFLACAO       = 0.05;    // 5% ao ano
+const ANO_BASE       = 2026;    // ano de referência
+const PROVA_BASE     = 100;     // valor de uma prova em 2026
+const EUR_RATE       = 6.20;
+
+// Passagem (R$4.000 da meta)
+const CUSTO_PASSAGEM = 4000;
+
+// Custos Disney — somam R$8.000
+const CUSTOS_DISNEY = [
+  { nome: 'Hotel Disney (3 noites + ingressos)', val: 3100 },
+  { nome: 'Alimentação (7 dias)',                val: 2660 },
+  { nome: 'Transporte + seguro viagem',          val:  950 },
+  { nome: 'Extras e compras',                    val: 1290 },
+];
+
+// Experiências — desbloqueiam progressivamente
+const EXPS = [
+  { icon: '🍽️', nome: 'Jantar temático',     unlockAt: Math.round(META * 0.75) },
+  { icon: '🛍️', nome: 'Loja oficial Disney', unlockAt: Math.round(META * 0.90) },
+  { icon: '🎈', nome: 'Balão PanoraMagic',   unlockAt: META },
+];
+
+// ═══════════════════════════════════════════
+// INFLAÇÃO
+// ═══════════════════════════════════════════
+function getAnoAtual() { return new Date().getFullYear(); }
+
+function getMetaReal() {
+  const anos = Math.max(0, getAnoAtual() - ANO_BASE);
+  return Math.round(META_REAL_BASE * Math.pow(1 + INFLACAO, anos));
+}
+
+function getValorProva() {
+  const anos = Math.max(0, getAnoAtual() - ANO_BASE);
+  return Math.round(PROVA_BASE * Math.pow(1 + INFLACAO, anos));
+}
+
+function getValorProvaAno(ano) {
+  const anos = Math.max(0, ano - ANO_BASE);
+  return Math.round(PROVA_BASE * Math.pow(1 + INFLACAO, anos));
+}
+
+// ═══════════════════════════════════════════
+// ESTADO
+// ═══════════════════════════════════════════
+let db, unsubscribe;
+let estado = { saldo: 0, historico: [] };
+let tipoAtual = "prova";
+let matAtual = "Português";
+let notaAtual = 9;
+let modoAdmin = false;
+
+// ═══════════════════════════════════════════
+// FIREBASE
+// ═══════════════════════════════════════════
+function initFirebase() {
+  try {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.firestore();
+    ouvirDados();
+  } catch(e) {
+    console.error("Firebase não configurado:", e);
+    usarModoLocal();
+  }
+}
+
+function ouvirDados() {
+  if (unsubscribe) unsubscribe();
+  unsubscribe = db.collection("cofre").doc("sophia")
+    .onSnapshot(doc => {
+      if (doc.exists) {
+        estado = doc.data();
+        estado.historico = estado.historico || [];
+      } else {
+        estado = { saldo: 0, historico: [] };
+      }
+      renderTudo();
+    }, err => { console.error(err); usarModoLocal(); });
+}
+
+async function salvarDados() {
+  if (!db) { salvarLocal(); return; }
+  try {
+    await db.collection("cofre").doc("sophia").set(estado);
+  } catch(e) { salvarLocal(); }
+}
+
+function usarModoLocal() {
+  db = null;
+  const salvo = localStorage.getItem("cofre-sophia");
+  if (salvo) estado = JSON.parse(salvo);
+  renderTudo();
+}
+function salvarLocal() { localStorage.setItem("cofre-sophia", JSON.stringify(estado)); }
+
+// ═══════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════
+function entrar() {
+  const v = document.getElementById("senha-input").value;
+  if (v === SENHA_ADMIN) {
+    modoAdmin = true;
+    document.getElementById("erro-login").textContent = "";
+    document.getElementById("login-screen").classList.remove("active");
+    document.getElementById("nav-admin").style.display = "flex";
+    document.getElementById("nav-sobrinha").style.display = "none";
+    goAdmin("admin");
+  } else {
+    document.getElementById("erro-login").textContent = "Senha incorreta.";
+    document.getElementById("senha-input").value = "";
+    document.getElementById("senha-input").focus();
+  }
+}
+
+function verCofre() {
+  modoAdmin = false;
+  document.getElementById("login-screen").classList.remove("active");
+  document.getElementById("nav-admin").style.display = "none";
+  document.getElementById("nav-sobrinha").style.display = "flex";
+  goScreen("cofre");
+}
+
+function sair() {
+  modoAdmin = false;
+  document.getElementById("nav-admin").style.display = "none";
+  document.getElementById("nav-sobrinha").style.display = "none";
+  ["screen-cofre","screen-admin","screen-historico"].forEach(s =>
+    document.getElementById(s).classList.remove("active"));
+  document.getElementById("login-screen").classList.add("active");
+  document.getElementById("senha-input").value = "";
+}
+
+// ═══════════════════════════════════════════
+// NAVEGAÇÃO
+// ═══════════════════════════════════════════
+function goScreen(name) {
+  document.getElementById("screen-cofre").classList.toggle("active", name === "cofre");
+  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("nb-cofre") && document.getElementById("nb-cofre").classList.add("active");
+}
+
+function goAdmin(name) {
+  const screens = { "admin": "screen-admin", "cofre-admin": "screen-cofre", "historico": "screen-historico" };
+  Object.values(screens).forEach(s => document.getElementById(s).classList.remove("active"));
+  document.getElementById(screens[name]).classList.add("active");
+  document.querySelectorAll("#nav-admin .nav-btn").forEach(b => b.classList.remove("active"));
+  const map = { admin: "na-registrar", "cofre-admin": "na-cofre", historico: "na-historico" };
+  document.getElementById(map[name]) && document.getElementById(map[name]).classList.add("active");
+  if (name === "historico") renderHistoricoAdmin();
+}
+
+// ═══════════════════════════════════════════
+// FORMULÁRIO
+// ═══════════════════════════════════════════
+function setTipo(t) {
+  tipoAtual = t;
+  ["prova","venda","presente"].forEach(x =>
+    document.getElementById("tipo-"+x).classList.toggle("active", x===t));
+  document.getElementById("bloco-materia").style.display = t==="prova" ? "" : "none";
+  document.getElementById("bloco-nota").style.display    = t==="prova" ? "" : "none";
+  if (t === "prova") {
+    document.getElementById("bloco-valor").style.display = "none";
+    document.getElementById("desc-input").value = matAtual + " — nota " + notaAtual;
+  } else {
+    document.getElementById("bloco-valor").style.display = "";
+    document.getElementById("valor-input").value = "";
+  }
+}
+
+function setMat(el, mat) {
+  matAtual = mat;
+  document.querySelectorAll(".mat-btn").forEach(b => b.classList.remove("active"));
+  el.classList.add("active");
+  document.getElementById("desc-input").value = mat + " — nota " + notaAtual;
+}
+
+function setNota(n) {
+  notaAtual = n;
+  document.getElementById("nota-9").classList.toggle("active", n===9);
+  document.getElementById("nota-10").classList.toggle("active", n===10);
+  document.getElementById("desc-input").value = matAtual + " — nota " + n;
+}
+
+async function registrar() {
+  const btn = document.getElementById("btn-registrar");
+  btn.disabled = true;
+  try {
+    const val = tipoAtual === "prova"
+      ? getValorProva()
+      : parseFloat(document.getElementById("valor-input").value);
+    if (!val || val <= 0) return;
+    const desc = document.getElementById("desc-input").value ||
+      (tipoAtual === "prova" ? matAtual + " — nota " + notaAtual : tipoAtual);
+    const d = new Date();
+    const data = d.toLocaleDateString("pt-BR", { day:"2-digit", month:"2-digit", year:"2-digit" });
+    const item = { val: Math.round(val), tipo: tipoAtual, desc, data, ts: Date.now() };
+    estado.historico = estado.historico || [];
+    estado.historico.push(item);
+    estado.saldo = (estado.saldo || 0) + item.val;
+    await salvarDados();
+    renderTudo();
+    showToast("+ R$ " + item.val + " registrado! ⭐");
+    if (tipoAtual === "prova") {
+      document.getElementById("desc-input").value = matAtual + " — nota " + notaAtual;
+    } else {
+      document.getElementById("desc-input").value = "";
+      document.getElementById("valor-input").value = "";
+    }
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function resetar() {
+  estado = { saldo: 0, historico: [] };
+  await salvarDados();
+  renderTudo();
+}
+
+// ═══════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════
+const CORES = { prova: "#4a9eff", venda: "#3ecf8e", presente: "#f5c842" };
+function fmt(v) { return "R$ " + Math.round(v).toLocaleString("pt-BR"); }
+
+function getMensagem(pct) {
+  if (pct >= 100) return "🎉 META ATINGIDA! Hora de ir para a Disney!";
+  if (pct >= 75)  return "Quase lá! Falta tão pouco! 🎠";
+  if (pct >= 50)  return "Mais da metade! A Disney está chegando! 🎡";
+  if (pct >= 25)  return "Você está no caminho certo! Continua assim! ⭐";
+  return "A viagem acontece quando a meta chegar 🏰";
+}
+
+function renderTudo() {
+  const s = estado.saldo || 0;
+  const hist = [...(estado.historico || [])].reverse();
+
+  // HERO
+  document.getElementById("s-saldo").textContent = fmt(s);
+  document.getElementById("s-eur").textContent = "cotação de referência: €1 = R$ " + EUR_RATE.toFixed(2);
+  const pct = Math.min(100, Math.round(s / META * 100));
+  document.getElementById("s-barra").style.width = pct + "%";
+  document.getElementById("s-pct").textContent = pct + "%";
+
+  // MOTIVAÇÃO
+  document.getElementById("s-pct-big").textContent = pct + "%";
+  document.getElementById("s-motivacao").textContent = getMensagem(pct);
+
+  // ESTRELAS
+  const total = Math.floor(s / 100);
+  const mostrar = Math.max(total + 2, 10);
+  let eh = "";
+  for (let i = 0; i < Math.min(mostrar, 45); i++) {
+    eh += `<div class="estrela${i < total ? " on" : ""}">
+      <svg viewBox="0 0 24 24" fill="${i < total ? "#f5c842" : "none"}"
+        stroke="${i < total ? "#f5c842" : "rgba(255,255,255,0.2)"}" stroke-width="2">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg></div>`;
+  }
+  document.getElementById("s-estrelas").innerHTML = eh;
+
+  // PASSAGEM (waterfall: primeiro os R$4.000)
+  const pagoPassagem = Math.min(s, CUSTO_PASSAGEM);
+  const pctPass = Math.round(pagoPassagem / CUSTO_PASSAGEM * 100);
+  document.getElementById("s-passagem").innerHTML =
+    `<div class="cost-item" style="border-bottom:none;padding:4px 0">
+      <div class="cost-header">
+        <div class="cost-name">Fortaleza → Paris (ida e volta)</div>
+        <div class="cost-vals">${fmt(pagoPassagem)} / ${fmt(CUSTO_PASSAGEM)}</div>
+      </div>
+      <div class="cost-bar-bg"><div class="cost-bar-fill" style="width:${pctPass}%;background:#9b59ff"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:5px">${pctPass}% garantido</div>
+    </div>`;
+
+  // CUSTOS DISNEY (waterfall sobre o que sobra após passagem)
+  let restante = Math.max(0, s - CUSTO_PASSAGEM);
+  let dh = '';
+  CUSTOS_DISNEY.forEach((c, i) => {
+    const pago = Math.min(restante, c.val);
+    const p = Math.round(pago / c.val * 100);
+    restante = Math.max(0, restante - c.val);
+    dh += `<div class="cost-item"${i === CUSTOS_DISNEY.length - 1 ? ' style="border-bottom:none"' : ''}>
+      <div class="cost-header">
+        <div class="cost-name">${c.nome}</div>
+        <div class="cost-vals">${fmt(pago)} / ${fmt(c.val)}</div>
+      </div>
+      <div class="cost-bar-bg"><div class="cost-bar-fill" style="width:${p}%;background:#4a9eff"></div></div>
+    </div>`;
+  });
+  document.getElementById("s-disney-costs").innerHTML = dh;
+
+  // EXPERIÊNCIAS
+  let eg = '';
+  EXPS.forEach((e, i) => {
+    const ok = s >= e.unlockAt;
+    const locked = !ok;
+    const p = ok ? 100 : Math.round(Math.min(s, e.unlockAt) / e.unlockAt * 100);
+    const span = i === 2 ? ' style="grid-column:span 2"' : '';
+    eg += `<div class="exp-item${ok ? ' unlocked' : ''}${locked ? ' locked-state' : ''}"${span}>
+      <div class="exp-icon">${e.icon}</div>
+      <div class="exp-name">${e.nome}</div>
+      <div class="exp-bar-bg"><div class="exp-bar-fill" style="width:${p}%"></div></div>
+      ${ok ? '<div class="exp-check">✓ desbloqueado!</div>' : `<div class="exp-lock-msg">${p}% — desbloqueia ao atingir ${i===0?'75%':i===1?'90%':'100%'} da meta</div>`}
+    </div>`;
+  });
+  document.getElementById("s-exp").innerHTML = eg;
+
+  // HISTÓRICO (últimos 5)
+  const sh = hist.slice(0, 5);
+  document.getElementById("s-hist").innerHTML = sh.length === 0
+    ? '<div class="hist-empty">Nenhuma conquista ainda 🌟</div>'
+    : sh.map(h => `<div class="hist-item">
+        <div class="hist-dot" style="background:${CORES[h.tipo]}"></div>
+        <div style="flex:1">
+          <div class="hist-desc">${h.desc}</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+            <span class="badge badge-${h.tipo}">${h.tipo}</span>
+            <span class="hist-data">${h.data}</span>
+          </div>
+        </div>
+        <div class="hist-amt">+${fmt(h.val)}</div>
+      </div>`).join("");
+
+  // ADMIN — META REAL
+  renderAdminMeta();
+}
+
+function renderAdminMeta() {
+  const el1 = document.getElementById("admin-meta-real-val");
+  const el2 = document.getElementById("admin-prova-val");
+  const el3 = document.getElementById("admin-prova-prox");
+  if (!el1) return;
+  const proxAno = getAnoAtual() + 1;
+  el1.textContent = fmt(getMetaReal());
+  el2.textContent = fmt(getValorProva());
+  el3.textContent = `Em ${proxAno} cada prova valerá ${fmt(getValorProvaAno(proxAno))}`;
+}
+
+function renderHistoricoAdmin() {
+  const s = estado.saldo || 0;
+  const hist = [...(estado.historico || [])].reverse();
+  document.getElementById("admin-total-label").textContent = "Total: " + fmt(s);
+
+  const anos = {};
+  (estado.historico || []).forEach(h => {
+    const ano = "20" + h.data.split("/")[2];
+    anos[ano] = (anos[ano] || 0) + h.val;
+  });
+  document.getElementById("anos-grid").innerHTML =
+    ["2026","2027","2028","2029"].map(a => `
+      <div class="ano-card">
+        <div class="ano-label">${a} · prova = ${fmt(getValorProvaAno(parseInt(a)))}</div>
+        <div class="ano-val">${fmt(anos[a] || 0)}</div>
+        <div class="ano-sub">acumulado</div>
+      </div>`).join("");
+
+  document.getElementById("admin-hist").innerHTML = hist.length === 0
+    ? '<div class="hist-empty">Nenhum registro ainda.</div>'
+    : hist.map(h => `<div class="hist-item">
+        <div class="hist-dot" style="background:${CORES[h.tipo]}"></div>
+        <div style="flex:1">
+          <div class="hist-desc">${h.desc}</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+            <span class="badge badge-${h.tipo}">${h.tipo}</span>
+            <span class="hist-data">${h.data}</span>
+          </div>
+        </div>
+        <div class="hist-amt">+${fmt(h.val)}</div>
+      </div>`).join("");
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+// INIT
+setTipo("prova");
+initFirebase();
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
