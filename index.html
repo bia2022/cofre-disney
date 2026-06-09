@@ -222,6 +222,8 @@ h1,h2,h3,.display { font-family: 'Baloo 2', sans-serif; }
         <div class="estrelas-wrap" id="s-estrelas"></div>
       </div>
 
+      <div class="card" id="s-breakdown" style="padding:14px 16px"></div>
+
       <div class="card" style="text-align:center;padding:20px">
         <div style="font-family:'Baloo 2',sans-serif;font-size:56px;font-weight:800;color:var(--purple);line-height:1" id="s-pct-big">0%</div>
         <div style="font-size:13px;color:var(--text2);margin-top:6px">do sonho guardado</div>
@@ -315,6 +317,11 @@ h1,h2,h3,.display { font-family: 'Baloo 2', sans-serif; }
       <div id="bloco-valor">
         <label class="form-label">valor (R$)</label>
         <input type="number" id="valor-input" class="form-input" placeholder="100" value="100" min="1" step="1">
+      </div>
+
+      <div id="bloco-doador" style="display:none">
+        <label class="form-label">nome de quem deu</label>
+        <input type="text" id="doador-input" class="form-input" placeholder="Ex: Vovó, Tio João...">
       </div>
 
       <div id="bloco-descricao">
@@ -558,6 +565,7 @@ function setTipo(t) {
     document.getElementById("tipo-"+x).classList.toggle("active", x===t));
   document.getElementById("bloco-materia").style.display = t==="prova" ? "" : "none";
   document.getElementById("bloco-nota").style.display    = t==="prova" ? "" : "none";
+  document.getElementById("bloco-doador").style.display  = t==="presente" ? "" : "none";
   if (t === "prova") {
     document.getElementById("bloco-valor").style.display = "none";
     document.getElementById("desc-input").value = matAtual + " — nota " + notaAtual;
@@ -594,6 +602,10 @@ async function registrar() {
     const d = new Date();
     const data = d.toLocaleDateString("pt-BR", { day:"2-digit", month:"2-digit", year:"2-digit" });
     const item = { val: Math.round(val), tipo: tipoAtual, desc, data, ts: Date.now() };
+    if (tipoAtual === "presente") {
+      const doador = document.getElementById("doador-input").value.trim();
+      if (doador) item.doador = doador;
+    }
     estado.historico = estado.historico || [];
     estado.historico.push(item);
     estado.saldo = (estado.saldo || 0) + item.val;
@@ -605,6 +617,7 @@ async function registrar() {
     } else {
       document.getElementById("desc-input").value = "";
       document.getElementById("valor-input").value = "";
+      if (tipoAtual === "presente") document.getElementById("doador-input").value = "";
     }
   } finally {
     btn.disabled = false;
@@ -642,7 +655,50 @@ function renderTudo() {
   document.getElementById("s-barra").style.width = pct + "%";
   document.getElementById("s-pct").textContent = pct + "%";
 
-  // MOTIVAÇÃO
+  // BREAKDOWN POR ORIGEM
+  const totais = { prova: 0, presente: 0, venda: 0 };
+  const doadoresMapa = {};
+  (estado.historico || []).forEach(h => {
+    totais[h.tipo] = (totais[h.tipo] || 0) + h.val;
+    if (h.tipo === "presente") {
+      const nome = h.doador || "Família";
+      doadoresMapa[nome] = (doadoresMapa[nome] || 0) + h.val;
+    }
+  });
+
+  const doadoresEntries = Object.entries(doadoresMapa);
+  const doadoresHtml = doadoresEntries.length === 0
+    ? `<div style="font-size:11px;color:var(--text3);margin-top:6px">nenhum presente ainda</div>`
+    : doadoresEntries.map(([nome, val]) =>
+        `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-top:1px solid rgba(255,255,255,0.06)">
+          <span style="font-size:12px;color:var(--text2)">${nome}</span>
+          <span style="font-size:12px;font-weight:700;color:var(--gold)">R$ ${val.toLocaleString('pt-BR')}</span>
+        </div>`
+      ).join('');
+
+  document.getElementById("s-breakdown").innerHTML = `
+    <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">de onde vem</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:10px;text-align:center">
+        <div style="font-size:18px;margin-bottom:4px">⭐</div>
+        <div style="font-size:10px;color:var(--text2);margin-bottom:4px">de mim</div>
+        <div style="font-size:15px;font-weight:800;font-family:'Baloo 2',sans-serif;color:var(--blue)">R$ ${(totais.prova||0).toLocaleString('pt-BR')}</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:10px;text-align:center">
+        <div style="font-size:18px;margin-bottom:4px">🛒</div>
+        <div style="font-size:10px;color:var(--text2);margin-bottom:4px">da Sophia</div>
+        <div style="font-size:15px;font-weight:800;font-family:'Baloo 2',sans-serif;color:var(--green)">R$ ${(totais.venda||0).toLocaleString('pt-BR')}</div>
+      </div>
+    </div>
+    <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:10px;margin-top:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:10px;color:var(--text2)">🎁 da família</span>
+        <span style="font-size:15px;font-weight:800;font-family:'Baloo 2',sans-serif;color:var(--gold)">R$ ${(totais.presente||0).toLocaleString('pt-BR')}</span>
+      </div>
+      ${doadoresHtml}
+    </div>`;
+
+  // PROGRESSO MOTIVACIONAL
   document.getElementById("s-pct-big").textContent = pct + "%";
   document.getElementById("s-motivacao").textContent = getMensagem(pct);
 
