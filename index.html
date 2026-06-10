@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>✨ Meu Cofre Disney ✨</title>
+<title>Meu Cofre Disney ✨</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
@@ -216,7 +216,7 @@ h1,h2,h3,.display { font-family: 'Baloo 2', sans-serif; }
   <div id="screen-cofre" class="screen">
     <div class="header">
       <div>
-        <h2>Meu cofre ✨</h2>
+        <h2>✨Meu cofre✨</h2>
         <div class="header-sub">Disneyland Paris — quando a meta chegar! 🏰</div>
       </div>
     </div>
@@ -361,11 +361,32 @@ h1,h2,h3,.display { font-family: 'Baloo 2', sans-serif; }
     </div>
   </div>
 
+  <!-- TELA DIÁRIO -->
+  <div id="screen-diario" class="screen">
+    <div class="header">
+      <div>
+        <h2>Nosso diário 📖</h2>
+        <div class="header-sub">O que está no coração hoje?</div>
+      </div>
+    </div>
+    <div class="scroll">
+      <div class="card" style="padding:14px 16px">
+        <textarea id="diario-input" class="form-input" placeholder="Escreve aqui como você está se sentindo..." style="resize:none;height:110px;line-height:1.6;font-size:14px"></textarea>
+        <button class="btn btn-gold" onclick="escreverDiario()" style="margin-top:10px">Guardar no diário ✍️</button>
+      </div>
+      <div id="diario-lista"></div>
+    </div>
+  </div>
+
   <!-- NAV SOPHIA -->
   <nav class="nav" id="nav-sobrinha" style="display:none">
     <button class="nav-btn active" id="nb-cofre" onclick="goScreen('cofre')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       Cofre
+    </button>
+    <button class="nav-btn" id="nb-diario" onclick="goScreen('diario')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+      Diário
     </button>
   </nav>
 
@@ -382,6 +403,10 @@ h1,h2,h3,.display { font-family: 'Baloo 2', sans-serif; }
     <button class="nav-btn" id="na-historico" onclick="goAdmin('historico')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       Histórico
+    </button>
+    <button class="nav-btn" id="na-diario" onclick="goAdmin('diario-admin')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+      Diário
     </button>
     <button class="nav-btn" onclick="sair()" style="color:var(--pink)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9"/></svg>
@@ -589,18 +614,21 @@ function sair() {
 // ═══════════════════════════════════════════
 function goScreen(name) {
   document.getElementById("screen-cofre").classList.toggle("active", name === "cofre");
-  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-  document.getElementById("nb-cofre") && document.getElementById("nb-cofre").classList.add("active");
+  document.getElementById("screen-diario").classList.toggle("active", name === "diario");
+  document.querySelectorAll("#nav-sobrinha .nav-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("nb-" + name) && document.getElementById("nb-" + name).classList.add("active");
+  if (name === "diario") renderDiario();
 }
 
 function goAdmin(name) {
-  const screens = { "admin": "screen-admin", "cofre-admin": "screen-cofre", "historico": "screen-historico" };
+  const screens = { "admin": "screen-admin", "cofre-admin": "screen-cofre", "historico": "screen-historico", "diario-admin": "screen-diario" };
   Object.values(screens).forEach(s => document.getElementById(s).classList.remove("active"));
   document.getElementById(screens[name]).classList.add("active");
   document.querySelectorAll("#nav-admin .nav-btn").forEach(b => b.classList.remove("active"));
-  const map = { admin: "na-registrar", "cofre-admin": "na-cofre", historico: "na-historico" };
+  const map = { admin: "na-registrar", "cofre-admin": "na-cofre", historico: "na-historico", "diario-admin": "na-diario" };
   document.getElementById(map[name]) && document.getElementById(map[name]).classList.add("active");
   if (name === "historico") renderHistoricoAdmin();
+  if (name === "diario-admin") renderDiario();
 }
 
 // ═══════════════════════════════════════════
@@ -671,6 +699,45 @@ async function registrar() {
   }
 }
 
+async function escreverDiario() {
+  const texto = document.getElementById("diario-input").value.trim();
+  if (!texto) return;
+  const d = new Date();
+  const data = d.toLocaleDateString("pt-BR", { day:"2-digit", month:"2-digit", year:"2-digit" });
+  const hora = d.toLocaleTimeString("pt-BR", { hour:"2-digit", minute:"2-digit" });
+  const autor = modoAdmin ? "Amiga" : "Sophia";
+  const entrada = { texto, autor, data, hora, ts: Date.now() };
+  estado.diario = estado.diario || [];
+  estado.diario.push(entrada);
+  await salvarDados();
+  document.getElementById("diario-input").value = "";
+  renderDiario();
+  showToast("Guardado no diário! 📖");
+}
+
+function renderDiario() {
+  const lista = document.getElementById("diario-lista");
+  if (!lista) return;
+  const entradas = [...(estado.diario || [])].reverse();
+  if (entradas.length === 0) {
+    lista.innerHTML = '<div class="hist-empty" style="text-align:center;padding:32px 16px">Nenhuma entrada ainda 📖<br><span style="font-size:12px;color:var(--text3)">Seja a primeira a escrever!</span></div>';
+    return;
+  }
+  lista.innerHTML = entradas.map(e => {
+    const isSophia = e.autor === "Sophia";
+    const cor    = isSophia ? "var(--pink)"                  : "var(--blue)";
+    const bg     = isSophia ? "rgba(255,107,157,0.07)"       : "rgba(74,158,255,0.07)";
+    const borda  = isSophia ? "rgba(255,107,157,0.25)"       : "rgba(74,158,255,0.25)";
+    return `<div class="card" style="background:${bg};border-color:${borda};padding:14px 16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;font-weight:700;color:${cor}">${e.autor}</span>
+        <span style="font-size:11px;color:var(--text3)">${e.data}${e.hora ? ' · ' + e.hora : ''}</span>
+      </div>
+      <div style="font-size:14px;color:var(--text);line-height:1.7">${e.texto}</div>
+    </div>`;
+  }).join('');
+}
+
 async function resetar() {
   estado = { saldo: 0, historico: [] };
   await salvarDados();
@@ -688,7 +755,7 @@ function getMensagem(pct) {
   if (pct >= 75)  return "Quase lá! Falta tão pouco! 🎠";
   if (pct >= 50)  return "Mais da metade! A Disney está chegando! 🎡";
   if (pct >= 25)  return "Você está no caminho certo! Continua assim! ⭐";
-  return "A viagem acontece quando a meta chegar 🏰";
+  return "A viagem acontece quando eu fizer 12 anos, mas pode acontecer quando  meta chegar 🏰";
 }
 
 function renderTudo() {
